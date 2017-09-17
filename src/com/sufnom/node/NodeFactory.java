@@ -10,7 +10,30 @@ import java.util.List;
 public class NodeFactory {
     private Connection connection;
 
-    public Node insertNew(long parentId, String content){
+    public Synapse insertSynapse(long nodeId, String content){
+        try {
+            String query = "insert into synapse(parent,content) values (?,?)";
+            PreparedStatement statement = connection.prepareStatement(query,
+                    Statement.RETURN_GENERATED_KEYS);
+
+            statement.setLong(1, nodeId);
+            statement.setString(2, content);
+            int affectedRows = statement.executeUpdate();
+            connection.commit();
+
+            ResultSet rs = statement.getGeneratedKeys();
+            if (rs.next()){
+                Synapse synapse = new Synapse(rs.getLong(1));
+                synapse.setContent(content);
+                rs.close();
+                return synapse;
+            }
+        }
+        catch (Exception e){e.printStackTrace();}
+        return null;
+    }
+
+    public Node insertNode(long parentId, String content){
         try {
             String query = "insert into node(content) values (?)";
             PreparedStatement statement = connection.prepareStatement(query,
@@ -76,6 +99,27 @@ public class NodeFactory {
                 }
                 rs.close();
             }
+            statement.close();
+        }
+        catch (Exception e){e.printStackTrace();}
+        return array;
+    }
+
+    public JSONArray getSynapseList(long nodeId){
+        JSONArray array = new JSONArray();
+        try {
+            Statement statement = connection.createStatement();
+            String sql = "select * from synapse where parent = '" + nodeId + "'" ;
+            ResultSet rs = statement.executeQuery(sql);
+            JSONObject ob;
+            while (rs.next()){
+                ob = new JSONObject();
+                ob.put("id",rs.getLong("id"));
+                ob.put("content",rs.getString(3));
+                array.put(ob);
+            }
+            rs.close();
+            statement.close();
         }
         catch (Exception e){e.printStackTrace();}
         return array;

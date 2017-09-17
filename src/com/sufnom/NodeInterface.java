@@ -3,14 +3,13 @@ package com.sufnom;
 import com.sufnom.lib.ParameterFilter;
 import com.sufnom.node.Node;
 import com.sufnom.node.NodeTerminal;
+import com.sufnom.node.Synapse;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.json.JSONObject;
-import org.omg.CORBA.TRANSACTION_MODE;
 
-import java.awt.*;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -76,7 +75,7 @@ public class NodeInterface {
                 case REQUEST_INSERT:
                     JSONObject ob = new JSONObject((String)postMap.get("node"));
                     Node node = NodeTerminal.getSession().getFactory()
-                            .insertNew(Long.parseLong((String)postMap.get("parent")),
+                            .insertNode(Long.parseLong((String)postMap.get("parent")),
                                     ob.getString("content"));
                     if (node != null)
                         sendResponse(t, 200, node.toString());
@@ -98,8 +97,25 @@ public class NodeInterface {
             catch (Exception e){e.printStackTrace();}
         }
 
-        private void handleSynapseResponse(HttpExchange t, Map postMap){
-
+        private void handleSynapseResponse(HttpExchange t, Map postMap) throws Exception{
+            String request = (String)postMap.get(REQUEST);
+            switch (request){
+                case REQUEST_LIST:
+                    sendResponse(t, 200,
+                            NodeTerminal.getSession().getFactory()
+                                    .getSynapseList(Long.parseLong((String)postMap
+                                            .get("node"))).toString());
+                    break;
+                case REQUEST_INSERT:
+                    JSONObject ob = new JSONObject((String)postMap.get("synapse"));
+                    Synapse synapse = NodeTerminal.getSession().getFactory()
+                            .insertSynapse(Long.parseLong((String)postMap.get("node")),
+                                    ob.getString("content"));
+                    if (synapse != null)
+                        sendResponse(t, 200, synapse.toString());
+                    else sendResponse(t, 500, "");
+                    break;
+            }
         }
     }
 }
