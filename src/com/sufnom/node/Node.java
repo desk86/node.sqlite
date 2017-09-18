@@ -10,25 +10,25 @@ public class Node {
 
     public final long nodeId;
 
-    private String nodeTitle;
+    private JSONObject content;
 
     public Node(long nodeId){
         this.nodeId = nodeId;
     }
 
-    public String getNodeTitle() {
-        return nodeTitle;
+    public JSONObject getContent() {
+        return content;
     }
 
-    public void setNodeTitle(String nodeTitle) {
-        this.nodeTitle = nodeTitle;
+    public void setContent(JSONObject content) {
+        this.content = content;
     }
 
     public JSONObject getJSON(){
         JSONObject ob = new JSONObject();
         try {
             ob.put(KEY_NODE_ID, nodeId);
-            ob.put(KEY_NODE_CONTENT, nodeTitle);
+            ob.put(KEY_NODE_CONTENT, content);
         }
         catch (Exception e){e.printStackTrace();}
         return ob;
@@ -46,7 +46,7 @@ public class Node {
     public static Node getFrom(ResultSet rs){
         try {
             Node node = new Node(rs.getLong(1));
-            node.setNodeTitle(rs.getString(2));
+            node.setContent(new JSONObject(rs.getString(3)));
             return node;
         }
         catch (Exception e){e.printStackTrace();}

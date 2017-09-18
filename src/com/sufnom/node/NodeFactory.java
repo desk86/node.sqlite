@@ -12,19 +12,20 @@ public class NodeFactory {
 
     public Synapse insertSynapse(long nodeId, String content){
         try {
-            String query = "insert into synapse(parent,content) values (?,?)";
+            String query = "insert into synapse(parent,content,timestamp) values (?,?,?)";
             PreparedStatement statement = connection.prepareStatement(query,
                     Statement.RETURN_GENERATED_KEYS);
 
             statement.setLong(1, nodeId);
             statement.setString(2, content);
+            statement.setLong(3, System.currentTimeMillis());
             int affectedRows = statement.executeUpdate();
             connection.commit();
 
             ResultSet rs = statement.getGeneratedKeys();
             if (rs.next()){
                 Synapse synapse = new Synapse(rs.getLong(1));
-                synapse.setContent(content);
+                synapse.setContent(new JSONObject(content));
                 rs.close();
                 return synapse;
             }
@@ -46,7 +47,7 @@ public class NodeFactory {
             ResultSet rs = statement.getGeneratedKeys();
             if (rs.next()){
                 Node node = new Node(rs.getLong(1));
-                node.setNodeTitle(content);
+                node.setContent(new JSONObject(content));
                 rs.close();
                 addRelation(parentId, node.nodeId);
                 return node;
@@ -111,18 +112,33 @@ public class NodeFactory {
             Statement statement = connection.createStatement();
             String sql = "select * from synapse where parent = '" + nodeId + "'" ;
             ResultSet rs = statement.executeQuery(sql);
-            JSONObject ob;
+            Synapse synapse;
             while (rs.next()){
-                ob = new JSONObject();
-                ob.put("id",rs.getLong("id"));
-                ob.put("content",rs.getString(3));
-                array.put(ob);
+                synapse = Synapse.getFrom(rs);
+                if (synapse != null)
+                    array.put(synapse.getJSON());
             }
             rs.close();
             statement.close();
         }
         catch (Exception e){e.printStackTrace();}
         return array;
+    }
+
+    public Editor getEditor(long editorId){
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery("select * from editor where " +
+                    "id = '" + editorId + "'");
+            Editor editor = null;
+            if (rs.next())
+                editor = Editor.getFrom(rs);
+            rs.close();
+            statement.close();
+            return editor;
+        }
+        catch (Exception e){e.printStackTrace();}
+        return null;
     }
 
     public void connect(){

@@ -74,9 +74,10 @@ public class NodeInterface {
                     break;
                 case REQUEST_INSERT:
                     JSONObject ob = new JSONObject((String)postMap.get("node"));
+                    JSONObject content = ob.getJSONObject("content");
                     Node node = NodeTerminal.getSession().getFactory()
                             .insertNode(Long.parseLong((String)postMap.get("parent")),
-                                    ob.getString("content"));
+                                    content.toString());
                     if (node != null)
                         sendResponse(t, 200, node.toString());
                     else sendResponse(t, 500, "");
@@ -87,6 +88,7 @@ public class NodeInterface {
         private void sendResponse(HttpExchange t, int status, String response){
             byte[] rawResponse = response.getBytes();
             try {
+                System.out.println("Response : " + response);
                 t.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
                 t.getResponseHeaders().set("Content-Type", "text/plain");
                 t.sendResponseHeaders(status, rawResponse.length);
@@ -110,7 +112,7 @@ public class NodeInterface {
                     JSONObject ob = new JSONObject((String)postMap.get("synapse"));
                     Synapse synapse = NodeTerminal.getSession().getFactory()
                             .insertSynapse(Long.parseLong((String)postMap.get("node")),
-                                    ob.getString("content"));
+                                    ob.getJSONObject("content").toString());
                     if (synapse != null)
                         sendResponse(t, 200, synapse.toString());
                     else sendResponse(t, 500, "");
