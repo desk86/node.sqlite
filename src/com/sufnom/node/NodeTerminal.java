@@ -1,7 +1,12 @@
 package com.sufnom.node;
 
 import com.sufnom.lib.LRUCache;
+import com.sufnom.lib.ZedBase64;
+import org.apache.commons.io.IOUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.UUID;
 
 public class NodeTerminal {
@@ -32,5 +37,14 @@ public class NodeTerminal {
         long id = sessionCache.get(sessionId);
         if (id == 0) throw new Exception("Invalid Session");
         return id;
+    }
+
+    public static String readFile(String filePath){
+        try {
+            InputStream stream = new FileInputStream(new File(filePath));
+            return new String(IOUtils.toByteArray(stream));
+        }
+        catch (Exception e){e.printStackTrace();}
+        return "";
     }
 }

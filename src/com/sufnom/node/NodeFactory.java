@@ -4,6 +4,8 @@ import com.sun.org.apache.xalan.internal.lib.ExsltBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -191,7 +193,12 @@ public class NodeFactory {
 
     public void connect(){
         try {
-            String url = "jdbc:sqlite:F:/node-ext.db";
+            JSONObject conf = new JSONObject(NodeTerminal.readFile("conf.json"));
+            String currentPath = Paths.get(conf.getString("db_path"))
+                    .toAbsolutePath().normalize().toString();
+            File file = new File(currentPath, conf.getString("db_name"));
+            String htmlPath = file.getAbsolutePath();
+            String url = "jdbc:sqlite:" + htmlPath;
             connection = DriverManager.getConnection(url);
             connection.setAutoCommit(false);
         }
