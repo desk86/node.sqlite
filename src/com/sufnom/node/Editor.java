@@ -1,5 +1,6 @@
 package com.sufnom.node;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.ResultSet;
@@ -31,7 +32,7 @@ public class Editor {
     public static Editor getFrom(ResultSet rs){
         try {
             Editor editor = new Editor(rs.getLong(1));
-            editor.setName(rs.getString(3));
+            editor.setName(rs.getString(4));
             return editor;
         }
         catch (Exception e){e.printStackTrace();}
@@ -44,5 +45,18 @@ public class Editor {
         if (editor != null)
             return editor.getOb();
         return new JSONObject();
+    }
+
+    public static JSONArray getDetailedInfo(JSONArray editorIdArray){
+        JSONArray array = new JSONArray();
+        long editorId;
+        try {
+            for (int i=0; i < editorIdArray.length(); i++){
+                editorId = editorIdArray.getLong(i);
+                array.put(getEditorInfo(editorId));
+            }
+        }
+        catch (Exception e){e.printStackTrace();}
+        return array;
     }
 }

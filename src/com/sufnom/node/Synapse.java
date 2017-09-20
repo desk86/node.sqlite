@@ -11,14 +11,14 @@ public class Synapse {
     public final long synapseId;
 
     private JSONObject content;
-    private long editorId;
+    private long adminId;
     private long parentId;
     private long timeStamp;
 
     public Synapse(long synapseId){ this.synapseId = synapseId; }
 
-    public long getEditorId() { return editorId; }
-    public void setEditorId(long editorId) { this.editorId = editorId; }
+    public long getAdminId() { return adminId; }
+    public void setAdminId(long adminId) { this.adminId = adminId; }
 
     public long getParentId() { return parentId; }
     public void setParentId(long parentId) { this.parentId = parentId; }
@@ -34,7 +34,7 @@ public class Synapse {
         try {
             ob.put(KEY_SYNAPSE_ID, synapseId);
             ob.put(KEY_CONTENT, content);
-            ob.put("editor", Editor.getEditorInfo(editorId));
+            ob.put("admin", Editor.getEditorInfo(adminId));
             ob.put("parent", parentId);
             ob.put("timestamp", timeStamp);
         }
@@ -54,7 +54,7 @@ public class Synapse {
     public static Synapse getFrom(ResultSet rs){
         try {
             Synapse synapse = new Synapse(rs.getLong(1));
-            synapse.setEditorId(rs.getLong(2));
+            synapse.setAdminId(rs.getLong(2));
             synapse.setParentId(rs.getLong(3));
             synapse.setContent(new JSONObject(rs.getString(4)));
             synapse.setTimeStamp(rs.getLong(5));

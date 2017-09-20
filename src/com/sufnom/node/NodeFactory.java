@@ -1,5 +1,6 @@
 package com.sufnom.node;
 
+import com.sun.org.apache.xalan.internal.lib.ExsltBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -10,37 +11,64 @@ import java.util.List;
 public class NodeFactory {
     private Connection connection;
 
-    public Synapse insertSynapse(long nodeId, String content){
+    public Editor getEditor(String email, String password){
         try {
-            String query = "insert into synapse(parent,content,timestamp) values (?,?,?)";
-            PreparedStatement statement = connection.prepareStatement(query,
-                    Statement.RETURN_GENERATED_KEYS);
-
-            statement.setLong(1, nodeId);
-            statement.setString(2, content);
-            statement.setLong(3, System.currentTimeMillis());
-            int affectedRows = statement.executeUpdate();
-            connection.commit();
-
-            ResultSet rs = statement.getGeneratedKeys();
+            String query = "select * from editor where email = ? and pass = ? limit 1";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, email);
+            statement.setString(2, password);
+            ResultSet rs = statement.executeQuery();
+            Editor editor = null;
             if (rs.next()){
-                Synapse synapse = new Synapse(rs.getLong(1));
-                synapse.setContent(new JSONObject(content));
-                rs.close();
-                return synapse;
+                editor = Editor.getFrom(rs);
             }
+            rs.close();
+            statement.close();
+            return editor;
         }
         catch (Exception e){e.printStackTrace();}
         return null;
     }
 
-    public Node insertNode(long parentId, String content){
+    public Synapse insertSynapse(long nodeId, String content, long adminId){
         try {
-            String query = "insert into node(content) values (?)";
+            String query = "insert into synapse(admin,parent,content,timestamp) values (?,?,?,?)";
+            PreparedStatement statement = connection.prepareStatement(query,
+                    Statement.RETURN_GENERATED_KEYS);
+
+            statement.setLong(1, adminId);
+            statement.setLong(2, nodeId);
+            statement.setString(3, content);
+            statement.setLong(4, System.currentTimeMillis());
+            int affectedRows = statement.executeUpdate();
+            connection.commit();
+
+            ResultSet rs = statement.getGeneratedKeys();
+            long id = 0;
+            if (rs.next()){
+                id = rs.getLong(1);
+            }
+            rs.close();
+            statement.close();
+            if (id == 0){
+                System.out.println("Synapse not inserted");
+                return null;
+            }
+            else return getSynapse(id);
+        }
+        catch (Exception e){e.printStackTrace();}
+        return null;
+    }
+
+    public Node insertNode(long parentId, String content, long adminId){
+        try {
+            String query = "insert into node(content, admin, editors) values (?,?,?)";
             PreparedStatement statement = connection.prepareStatement(query,
                     Statement.RETURN_GENERATED_KEYS);
 
             statement.setString(1, content);
+            statement.setLong(2, adminId);
+            statement.setString(3, "[" + adminId + "]");
             int affectedRows = statement.executeUpdate();
             connection.commit();
 
@@ -53,6 +81,24 @@ public class NodeFactory {
                 return node;
             }
         }catch (Exception e){e.printStackTrace();}
+        return null;
+    }
+
+    public Synapse getSynapse(long synapseId){
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                    "select * from synapse where id = ?");
+            statement.setLong(1, synapseId);
+            ResultSet rs = statement.executeQuery();
+            Synapse synapse = null;
+            if (rs.next()){
+                synapse = Synapse.getFrom(rs);
+            }
+            rs.close();
+            statement.close();
+            return synapse;
+        }
+        catch (Exception e){e.printStackTrace();}
         return null;
     }
 
@@ -128,11 +174,13 @@ public class NodeFactory {
     public Editor getEditor(long editorId){
         try {
             Statement statement = connection.createStatement();
-            ResultSet rs = statement.executeQuery("select * from editor where " +
-                    "id = '" + editorId + "'");
+            String sql = "select * from editor where " +
+                    "id = '" + editorId + "'";
+            ResultSet rs = statement.executeQuery(sql);
             Editor editor = null;
             if (rs.next())
                 editor = Editor.getFrom(rs);
+            else System.out.println(sql);
             rs.close();
             statement.close();
             return editor;
