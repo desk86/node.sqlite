@@ -1,16 +1,16 @@
 package com.sufnom;
 
 import com.sufnom.lib.ParameterFilter;
+import com.sufnom.node.Editor;
 import com.sufnom.node.Node;
 import com.sufnom.node.NodeTerminal;
+import com.sufnom.node.Synapse;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.json.JSONObject;
-import org.omg.CORBA.TRANSACTION_MODE;
 
-import java.awt.*;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -20,6 +20,8 @@ public class NodeInterface {
 
     private static final String MSG_SERVER_STARTED = "Server Started";
 
+    private static final String CONTEXT_AUTH = "/auth";
+    private static final String CONTEXT_REGISTER = "/register";
     private static final String CONTEXT_NODE = "/node";
     private static final String CONTEXT_SYNAPSE = "/synapse";
 
@@ -59,13 +61,57 @@ public class NodeInterface {
                     case CONTEXT_SYNAPSE:
                         handleSynapseResponse(t, postMap);
                         break;
+                    case CONTEXT_AUTH:
+                        handleAuthResponse(t, postMap);
+                        break;
+                    case CONTEXT_REGISTER:
+                        handleRegisterResponse(t, postMap);
+                        break;
+                    default: sendResponse(t, 200, null);
                 }
             }
-            catch (Exception e){e.printStackTrace();}
+            catch (Exception e){
+                e.printStackTrace();
+                sendResponse(t, 200, "error");
+            }
+        }
+
+        private void handleAuthResponse(HttpExchange t, Map postMap) throws Exception{
+            try {
+                String email = (String) postMap.get("email");
+                String password = (String)postMap.get("password");
+                sendResponse(t, 200, NodeTerminal.getSession().signIn(email, password));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                sendResponse(t,500, "error");
+            }
+        }
+
+        private void handleRegisterResponse(HttpExchange t, Map postMap) throws Exception{
+            try {
+                String email = (String) postMap.get("email");
+                String password = (String)postMap.get("password");
+                String content = (String)postMap.get("content");
+                @SuppressWarnings("unused") //TODO Can Be Used For Later
+                        Editor editor = NodeTerminal.getSession()
+                        .getFactory().registerNew(email, password, content);
+                sendResponse(t, 200, NodeTerminal.getSession().signIn(email, password));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                sendResponse(t,500, "error");
+            }
+
         }
 
         private void handleNodeResponse(HttpExchange t, Map postMap) throws Exception{
             String request = (String)postMap.get(REQUEST);
+            if (request == null){
+                sendResponse(t, 200, null);
+                return;
+            }
+            getSessionAdmin(postMap);
             switch (request){
                 case REQUEST_LIST:
                     sendResponse(t, 200,
@@ -75,9 +121,12 @@ public class NodeInterface {
                     break;
                 case REQUEST_INSERT:
                     JSONObject ob = new JSONObject((String)postMap.get("node"));
+                    JSONObject content = ob.getJSONObject("content");
                     Node node = NodeTerminal.getSession().getFactory()
-                            .insertNew(Long.parseLong((String)postMap.get("parent")),
-                                    ob.getString("content"));
+                            .insertNode(
+                                    Long.parseLong((String)postMap.get("parent")),
+                                    content.toString(),
+                                    getSessionAdmin(postMap));
                     if (node != null)
                         sendResponse(t, 200, node.toString());
                     else sendResponse(t, 500, "");
@@ -85,9 +134,19 @@ public class NodeInterface {
             }
         }
 
+        private long getSessionAdmin(Map postMap) throws Exception{
+            return NodeTerminal.getSession().getAdmin((String)postMap.get("session"));
+        }
+
         private void sendResponse(HttpExchange t, int status, String response){
-            byte[] rawResponse = response.getBytes();
             try {
+                if (response == null){
+                    JSONObject ob = new JSONObject();
+                    ob.put("Status", "Server OK");
+                    response = ob.toString();
+                }
+                byte[] rawResponse = response.getBytes();
+                System.out.println("Response : " + response);
                 t.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
                 t.getResponseHeaders().set("Content-Type", "text/plain");
                 t.sendResponseHeaders(status, rawResponse.length);
@@ -98,8 +157,28 @@ public class NodeInterface {
             catch (Exception e){e.printStackTrace();}
         }
 
-        private void handleSynapseResponse(HttpExchange t, Map postMap){
-
+        private void handleSynapseResponse(HttpExchange t, Map postMap) throws Exception{
+            String request = (String)postMap.get(REQUEST);
+            getSessionAdmin(postMap);
+            switch (request){
+                case REQUEST_LIST:
+                    sendResponse(t, 200,
+                            NodeTerminal.getSession().getFactory()
+                                    .getSynapseList(Long.parseLong((String)postMap
+                                            .get("node"))).toString());
+                    break;
+                case REQUEST_INSERT:
+                    JSONObject ob = new JSONObject((String)postMap.get("synapse"));
+                    Synapse synapse = NodeTerminal.getSession().getFactory()
+                            .insertSynapse(
+                                    Long.parseLong((String)postMap.get("node")),
+                                    ob.getJSONObject("content").toString(),
+                                    getSessionAdmin(postMap));
+                    if (synapse != null)
+                        sendResponse(t, 200, synapse.toString());
+                    else sendResponse(t, 500, "");
+                    break;
+            }
         }
     }
 }
