@@ -1,6 +1,7 @@
 package com.sufnom;
 
 import com.sufnom.lib.ParameterFilter;
+import com.sufnom.node.Editor;
 import com.sufnom.node.Node;
 import com.sufnom.node.NodeTerminal;
 import com.sufnom.node.Synapse;
@@ -19,7 +20,8 @@ public class NodeInterface {
 
     private static final String MSG_SERVER_STARTED = "Server Started";
 
-    private static final String CONEXT_AUTH = "/auth";
+    private static final String CONTEXT_AUTH = "/auth";
+    private static final String CONTEXT_REGISTER = "/register";
     private static final String CONTEXT_NODE = "/node";
     private static final String CONTEXT_SYNAPSE = "/synapse";
 
@@ -59,8 +61,11 @@ public class NodeInterface {
                     case CONTEXT_SYNAPSE:
                         handleSynapseResponse(t, postMap);
                         break;
-                    case CONEXT_AUTH:
+                    case CONTEXT_AUTH:
                         handleAuthResponse(t, postMap);
+                        break;
+                    case CONTEXT_REGISTER:
+                        handleRegisterResponse(t, postMap);
                         break;
                     default: sendResponse(t, 200, null);
                 }
@@ -81,6 +86,23 @@ public class NodeInterface {
                 e.printStackTrace();
                 sendResponse(t,500, "error");
             }
+        }
+
+        private void handleRegisterResponse(HttpExchange t, Map postMap) throws Exception{
+            try {
+                String email = (String) postMap.get("email");
+                String password = (String)postMap.get("password");
+                String content = (String)postMap.get("content");
+                @SuppressWarnings("unused") //TODO Can Be Used For Later
+                        Editor editor = NodeTerminal.getSession()
+                        .getFactory().registerNew(email, password, content);
+                sendResponse(t, 200, NodeTerminal.getSession().signIn(email, password));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                sendResponse(t,500, "error");
+            }
+
         }
 
         private void handleNodeResponse(HttpExchange t, Map postMap) throws Exception{

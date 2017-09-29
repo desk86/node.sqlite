@@ -17,8 +17,10 @@ public class Editor {
     public JSONObject getOb(){
         JSONObject object = new JSONObject();
         try {
+            JSONObject contentOb = new JSONObject();
+            contentOb.put("name", name);
             object.put("id", editorId);
-            object.put("name", name);
+            object.put("content", contentOb);
         }
         catch (Exception e){e.printStackTrace();}
         return object;

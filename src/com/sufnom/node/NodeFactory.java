@@ -32,6 +32,31 @@ public class NodeFactory {
         return null;
     }
 
+    public Editor registerNew(String email, String password, String content){
+        try {
+            String query = "insert into editor(email, pass, name) values (?,?,?)";
+            PreparedStatement statement = connection.prepareStatement(query,
+                    Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, email);
+            statement.setString(2, password);
+            JSONObject ob = new JSONObject(content);
+            statement.setString(3, ob.getString("name"));
+            int affectedRows = statement.executeUpdate();
+            connection.commit();
+
+            Editor editor = null;
+            ResultSet rs = statement.getGeneratedKeys();
+            if (rs.next()){
+                editor = getEditor(rs.getLong(1));
+                rs.close();
+            }
+            statement.close();
+            return editor;
+        }
+        catch (Exception e){e.printStackTrace();}
+        return null;
+    }
+
     public Synapse insertSynapse(long nodeId, String content, long adminId){
         try {
             String query = "insert into synapse(admin,parent,content,timestamp) values (?,?,?,?)";
@@ -196,9 +221,11 @@ public class NodeFactory {
             JSONObject conf = new JSONObject(NodeTerminal.readFile("conf.json"));
             String currentPath = Paths.get(conf.getString("db_path"))
                     .toAbsolutePath().normalize().toString();
-            File file = new File(currentPath, conf.getString("db_name"));
-            String htmlPath = file.getAbsolutePath();
-            String url = "jdbc:sqlite:" + htmlPath;
+            File dbDir = new File(currentPath, conf.getString("db_name"));
+            String dbFilePath = dbDir.getAbsolutePath();
+            System.out.println("db : " + dbFilePath);
+            System.setProperty("java.io.tmpdir", currentPath);
+            String url = "jdbc:sqlite:" + dbFilePath;
             connection = DriverManager.getConnection(url);
             connection.setAutoCommit(false);
         }
