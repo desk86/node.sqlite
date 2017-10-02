@@ -113,10 +113,8 @@ public class NodeFactory {
 
     public Node getNode(long nodeId){
         try {
-            String sql = "select * from node where id = ?";
-            PreparedStatement statement = connection.prepareStatement(
-                    sql);
-            statement.setLong(1, nodeId);
+            String sql = "select * from node where id = '" + nodeId + "'";
+            Statement statement = connection.createStatement();
             Node node = null;
             ResultSet rs = statement.executeQuery(sql);
             if (rs.next()){
