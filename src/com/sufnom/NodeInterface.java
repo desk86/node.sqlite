@@ -28,6 +28,7 @@ public class NodeInterface {
     private static final String REQUEST = "request";
     private static final String REQUEST_LIST = "list";
     private static final String REQUEST_INSERT = "insert";
+    private static final String REQUEST_DETAIL = "detail";
 
     public static void main(String[] args) {
 	    // write your code here
@@ -113,6 +114,12 @@ public class NodeInterface {
             }
             getSessionAdmin(postMap);
             switch (request){
+                case REQUEST_DETAIL:
+                    sendResponse(t, 200,
+                            NodeTerminal.getSession().getFactory()
+                                .getNode(Long.parseLong(
+                                        (String)postMap.get("node"))).toString());
+                    break;
                 case REQUEST_LIST:
                     sendResponse(t, 200,
                             NodeTerminal.getSession().getFactory()

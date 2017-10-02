@@ -111,6 +111,25 @@ public class NodeFactory {
         return null;
     }
 
+    public Node getNode(long nodeId){
+        try {
+            String sql = "select * from node where id = ?";
+            PreparedStatement statement = connection.prepareStatement(
+                    sql);
+            statement.setLong(1, nodeId);
+            Node node = null;
+            ResultSet rs = statement.executeQuery(sql);
+            if (rs.next()){
+                node = Node.getFrom(rs);
+            }
+            rs.close();
+            statement.close();
+            return node;
+        }
+        catch (Exception e){e.printStackTrace();}
+        return null;
+    }
+
     public Synapse getSynapse(long synapseId){
         try {
             PreparedStatement statement = connection.prepareStatement(

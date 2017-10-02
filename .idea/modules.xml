@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/node.ext.java.iml" filepath="$PROJECT_DIR$/node.ext.java.iml" />
+      <module fileurl="file://$PROJECT_DIR$/node.sqlite.iml" filepath="$PROJECT_DIR$/node.sqlite.iml" />
     </modules>
   </component>
 </project>

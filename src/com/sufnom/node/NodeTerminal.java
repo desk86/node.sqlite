@@ -3,6 +3,7 @@ package com.sufnom.node;
 import com.sufnom.lib.LRUCache;
 import com.sufnom.lib.ZedBase64;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +25,15 @@ public class NodeTerminal {
     public String signIn(String email, String password){
         Editor editor = factory.getEditor(email, password);
         if (editor == null) return "null";
-        else return pushSession(editor.editorId);
+        else {
+            JSONObject ob = new JSONObject();
+            try {
+                ob.put("session", pushSession(editor.editorId));
+                ob.put("node", editor.getRootNodeId());
+            }
+            catch (Exception e){e.printStackTrace();}
+            return ob.toString();
+        }
     }
 
     public String pushSession(long userId){

@@ -2,7 +2,7 @@
   <artifact type="jar" name="node.ext.java:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/node_ext_java_jar</output-path>
     <root id="archive" name="node.ext.java.jar">
-      <element id="module-output" name="node.ext.java" />
+      <element id="module-output" name="node.sqlite" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/java-json.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/ehcache-3.3.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-io-2.5.jar" path-in-jar="/" />
