@@ -9,10 +9,20 @@ public class Editor {
     public final long editorId;
 
     private String name;
+    private long rootNodeId;
+
     public Editor(long editorId){this.editorId = editorId;}
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public long getRootNodeId() {
+        return rootNodeId;
+    }
+
+    public void setRootNodeId(long rootNodeId) {
+        this.rootNodeId = rootNodeId;
+    }
 
     public JSONObject getOb(){
         JSONObject object = new JSONObject();
@@ -35,6 +45,7 @@ public class Editor {
         try {
             Editor editor = new Editor(rs.getLong(1));
             editor.setName(rs.getString(4));
+            editor.setRootNodeId(rs.getLong(5));
             return editor;
         }
         catch (Exception e){e.printStackTrace();}
