@@ -32,6 +32,24 @@ public class NodeFactory {
         return null;
     }
 
+    public Editor getEditor(String email){
+        try {
+            String query = "select * from editor where email = ? limit 1";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, email);
+            ResultSet rs = statement.executeQuery();
+            Editor editor = null;
+            if (rs.next()){
+                editor = Editor.getFrom(rs);
+            }
+            rs.close();
+            statement.close();
+            return editor;
+        }
+        catch (Exception e){e.printStackTrace();}
+        return null;
+    }
+
     public Editor registerNew(String email, String password, String content){
         try {
             String query = "insert into editor(email, pass, name) values (?,?,?)";
@@ -55,6 +73,54 @@ public class NodeFactory {
         }
         catch (Exception e){e.printStackTrace();}
         return null;
+    }
+
+    public JSONArray getInvitationList(String userEmail) throws Exception{
+        String query = "select invitations from editor where email = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, userEmail);
+        ResultSet rs = statement.executeQuery();
+        JSONArray array = null;
+        if (rs.next())
+            array = new JSONArray(rs.getString(1));
+        rs.close();
+        statement.close();
+        return array;
+    }
+
+    public void addInvitation(String targetUserEmail, long targetNodeId) throws Exception{
+        JSONArray array = getInvitationList(targetUserEmail);
+        array.put(targetNodeId);
+        updateInvitation(targetUserEmail, array);
+    }
+
+    public void acceptInvitation(String userEmail, long targetNodeId) throws Exception{
+        Editor editor = getEditor(userEmail);
+        long rootNode = editor.getRootNodeId();
+        JSONArray invitationList = getInvitationList(userEmail);
+        JSONArray newList = removeElement(invitationList, targetNodeId);
+        addRelation(rootNode, targetNodeId);
+        updateInvitation(userEmail, newList);
+    }
+
+    public void updateInvitation(String targetUserEmail, JSONArray invitationList) throws Exception{
+        String query = "update editor set invitation = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, invitationList.toString());
+        statement.executeUpdate();
+        connection.commit();
+        statement.close();
+    }
+
+    private JSONArray removeElement(JSONArray parent, long number) throws Exception{
+        JSONArray array = new JSONArray();
+        long n;
+        for (int i = 0; i<parent.length(); i++){
+            n = parent.getLong(i);
+            if (n != number)
+                array.put(n);
+        }
+        return array;
     }
 
     public Synapse insertSynapse(long nodeId, String content, long adminId){
@@ -157,6 +223,10 @@ public class NodeFactory {
             connection.commit();
         }
         catch (Exception e){e.printStackTrace();}
+    }
+
+    private void addEditorToNode(long editorId, long nodeId){
+        //TODO complete this method
     }
 
     private List<Long> getChildList(long parentId){

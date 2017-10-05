@@ -24,6 +24,7 @@ public class NodeInterface {
     private static final String CONTEXT_REGISTER = "/register";
     private static final String CONTEXT_NODE = "/node";
     private static final String CONTEXT_SYNAPSE = "/synapse";
+    private static final String CONTEXT_NODE_INVITATION = "/node-invitation";
 
     private static final String REQUEST = "request";
     private static final String REQUEST_LIST = "list";
@@ -68,6 +69,9 @@ public class NodeInterface {
                     case CONTEXT_REGISTER:
                         handleRegisterResponse(t, postMap);
                         break;
+                    case CONTEXT_NODE_INVITATION:
+                        handleNodeInvitationResponse(t, postMap);
+                        break;
                     default: sendResponse(t, 200, null);
                 }
             }
@@ -103,7 +107,28 @@ public class NodeInterface {
                 e.printStackTrace();
                 sendResponse(t,500, "error");
             }
+        }
 
+        private void handleNodeInvitationResponse(HttpExchange t, Map postMap) throws Exception{
+            String request = (String)postMap.get("request");
+            String userEmail = (String) postMap.get("email");
+            long targetNode;
+
+            switch (request){
+                case "invite":
+                    targetNode = Long.parseLong((String) postMap.get("node"));
+                    NodeTerminal.getSession().getFactory().addInvitation(userEmail, targetNode);
+                    sendResponse(t, 200, "ok");
+                    break;
+                case "list":
+                    sendResponse(t, 200, NodeTerminal.getSession().getFactory()
+                    .getInvitationList(userEmail).toString());
+                    break;
+                case "accept":
+                    targetNode = Long.parseLong((String) postMap.get("node"));
+                    NodeTerminal.getSession().getFactory().acceptInvitation(userEmail, targetNode);
+                    break;
+            }
         }
 
         private void handleNodeResponse(HttpExchange t, Map postMap) throws Exception{
