@@ -1,6 +1,5 @@
 package com.sufnom.node;
 
-import com.sun.org.apache.xalan.internal.lib.ExsltBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -100,13 +99,15 @@ public class NodeFactory {
         JSONArray invitationList = getInvitationList(userEmail);
         JSONArray newList = removeElement(invitationList, targetNodeId);
         addRelation(rootNode, targetNodeId);
+        addEditorToNode(userEmail, targetNodeId);
         updateInvitation(userEmail, newList);
     }
 
     public void updateInvitation(String targetUserEmail, JSONArray invitationList) throws Exception{
-        String query = "update editor set invitation = ?";
+        String query = "update editor set invitation = ? where email = ?";
         PreparedStatement statement = connection.prepareStatement(query);
         statement.setString(1, invitationList.toString());
+        statement.setString(2, targetUserEmail);
         statement.executeUpdate();
         connection.commit();
         statement.close();
@@ -225,8 +226,23 @@ public class NodeFactory {
         catch (Exception e){e.printStackTrace();}
     }
 
-    private void addEditorToNode(long editorId, long nodeId){
+    private void addEditorToNode(String email, long nodeId) throws Exception{
         //TODO complete this method
+        Node node = getNode(nodeId);
+        JSONArray editors = node.getEditors();
+        Editor editor = getEditor(email);
+        editors.put(editor.editorId);
+        updateEditors(nodeId, editors);
+    }
+
+    private void updateEditors(long nodeId, JSONArray newEditorList) throws Exception{
+        String query = "update node set editors = ? where id = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, newEditorList.toString());
+        statement.setLong(2, nodeId);
+        statement.executeUpdate();
+        connection.commit();
+        statement.close();
     }
 
     private List<Long> getChildList(long parentId){
@@ -256,7 +272,7 @@ public class NodeFactory {
                 if (rs.next()){
                     node = Node.getFrom(rs);
                     if (node != null)
-                        array.put(node.getJSON());
+                        array.put(node.getReWorkedJSON());
                 }
                 rs.close();
             }

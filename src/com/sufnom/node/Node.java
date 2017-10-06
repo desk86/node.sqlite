@@ -27,7 +27,7 @@ public class Node {
     public JSONObject getContent() { return content; }
     public void setContent(JSONObject content) { this.content = content; }
 
-    public JSONObject getJSON(){
+    public JSONObject getReWorkedJSON(){
         JSONObject ob = new JSONObject();
         try {
             ob.put(KEY_NODE_ID, nodeId);
@@ -42,7 +42,7 @@ public class Node {
     @Override
     public String toString() {
         try {
-            return getJSON().toString();
+            return getReWorkedJSON().toString();
         }
         catch (Exception e){e.printStackTrace();}
         return super.toString();
