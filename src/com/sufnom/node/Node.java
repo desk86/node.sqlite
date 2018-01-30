@@ -52,8 +52,8 @@ public class Node {
         try {
             Node node = new Node(rs.getLong(1));
             node.setAdminId(rs.getLong(2));
-            node.setEditors(new JSONArray(rs.getString(3)));
-            node.setContent(new JSONObject(rs.getString(4)));
+            node.setEditors(new JSONArray(rs.getString(4)));
+            node.setContent(new JSONObject(rs.getString(3)));
             return node;
         }
         catch (Exception e){e.printStackTrace();}

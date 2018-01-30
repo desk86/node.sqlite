@@ -1,7 +1,8 @@
 CREATE TABLE `node` (
 	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	`admin`	INTEGER,
-	`content`	TEXT
+	`content`	TEXT,
+	`editors`	TEXT
 );
 
 CREATE TABLE `synapse` (
@@ -17,5 +18,6 @@ CREATE TABLE `editor` (
 	`name`	TEXT,
 	`email`	TEXT,
 	`pass`	TEXT,
-	`invitations`	TEXT
+	`invitations`	TEXT,
+	`node`	INTEGER
 );

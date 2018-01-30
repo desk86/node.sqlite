@@ -45,7 +45,7 @@ public class Editor {
         try {
             Editor editor = new Editor(rs.getLong(1));
             editor.setName(rs.getString(4));
-            editor.setRootNodeId(rs.getLong(5));
+            editor.setRootNodeId(rs.getLong(6));
             return editor;
         }
         catch (Exception e){e.printStackTrace();}
