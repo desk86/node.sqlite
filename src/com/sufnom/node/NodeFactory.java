@@ -89,6 +89,8 @@ public class NodeFactory {
 
     public void addInvitation(String targetUserEmail, long targetNodeId) throws Exception{
         JSONArray array = getInvitationList(targetUserEmail);
+        if (isLongExistsInArray(array, targetNodeId))
+            return;
         array.put(targetNodeId);
         updateInvitation(targetUserEmail, array);
     }
@@ -97,6 +99,8 @@ public class NodeFactory {
         Editor editor = getEditor(userEmail);
         long rootNode = editor.getRootNodeId();
         JSONArray invitationList = getInvitationList(userEmail);
+        if (!isLongExistsInArray(invitationList, targetNodeId))
+            throw new Exception("User Doesn't have invitation to this node");
         JSONArray newList = removeElement(invitationList, targetNodeId);
         addRelation(rootNode, targetNodeId);
         addEditorToNode(userEmail, targetNodeId);
@@ -122,6 +126,16 @@ public class NodeFactory {
                 array.put(n);
         }
         return array;
+    }
+    private boolean isLongExistsInArray(JSONArray array, long number) throws Exception{
+        boolean status = false;
+        for (int i = 0; i<array.length(); i++){
+            if (array.getLong(i) == number){
+                status = true;
+                break;
+            }
+        }
+        return status;
     }
 
     public Synapse insertSynapse(long nodeId, String content, long adminId){

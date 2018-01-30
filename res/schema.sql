@@ -11,3 +11,11 @@ CREATE TABLE `synapse` (
 	`content`	TEXT,
 	`timestamp`	INTEGER
 );
+
+CREATE TABLE `editor` (
+	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`name`	TEXT,
+	`email`	TEXT,
+	`pass`	TEXT,
+	`invitations`	TEXT
+);
